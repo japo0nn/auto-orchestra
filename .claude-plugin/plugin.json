@@ -1,0 +1,9 @@
+{
+  "name": "auto-orchestra",
+  "displayName": "Auto Orchestra",
+  "version": "0.1.0",
+  "description": "Automatic model orchestration: Opus plans and reviews, Sonnet codes, Haiku scouts. The orchestrator becomes the main-thread agent, no manual commands needed.",
+  "author": { "name": "auto-orchestra" },
+  "license": "MIT",
+  "keywords": ["orchestration", "subagents", "opus", "sonnet", "haiku"]
+}

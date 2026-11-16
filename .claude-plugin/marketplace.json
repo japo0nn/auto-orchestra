@@ -1,0 +1,12 @@
+{
+  "name": "auto-orchestra-marketplace",
+  "description": "Marketplace for the auto-orchestra plugin",
+  "owner": { "name": "auto-orchestra" },
+  "plugins": [
+    {
+      "name": "auto-orchestra",
+      "source": "./",
+      "description": "Opus orchestrates and reviews, Sonnet codes, Haiku scouts. Activates automatically as the main-thread agent."
+    }
+  ]
+}
