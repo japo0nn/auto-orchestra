@@ -1,0 +1,505 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "auto-orchestra configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Master switch for every hook of the plugin."
+    },
+    "bash": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "bash settings.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Compress oversized Bash output."
+        },
+        "mode": {
+          "type": "string",
+          "default": "post",
+          "description": "\"post\": compress successful output after it ran (safe). \"wrap\": also rewrite noisy commands so failed output is compressed (experimental; may trigger permission prompts).",
+          "enum": [
+            "post",
+            "wrap"
+          ]
+        },
+        "minLines": {
+          "type": "number",
+          "default": 200,
+          "description": "Non-noisy commands: compress above this many lines..."
+        },
+        "minChars": {
+          "type": "number",
+          "default": 20000,
+          "description": "...or this many characters."
+        },
+        "noisyMinLines": {
+          "type": "number",
+          "default": 60,
+          "description": "Noisy commands (noisyCommands): lower line threshold."
+        },
+        "noisyMinChars": {
+          "type": "number",
+          "default": 6000,
+          "description": "Noisy commands: lower character threshold."
+        },
+        "head": {
+          "type": "number",
+          "default": 15,
+          "description": "Lines kept from the start."
+        },
+        "tail": {
+          "type": "number",
+          "default": 30,
+          "description": "Lines kept from the end."
+        },
+        "maxMatches": {
+          "type": "number",
+          "default": 50,
+          "description": "Max error/warning lines kept from the middle."
+        },
+        "maxLineLength": {
+          "type": "number",
+          "default": 300,
+          "description": "Longer lines are cut."
+        },
+        "saveFull": {
+          "type": "boolean",
+          "default": true,
+          "description": "Save the full output to a temp file and name it in the compressed text (if false or saving fails, nothing is compressed)."
+        },
+        "tmpTtlHours": {
+          "type": "number",
+          "default": 24,
+          "description": "Delete saved outputs older than this."
+        },
+        "noisyCommands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "\\b(install|ci|add|restore|update|upgrade|sync|fetch)\\b",
+            "\\b(build|compile|make|cmake|ninja|bazel|gradle|gradlew|mvn|msbuild|tsc|webpack|vite|rollup|esbuild)\\b",
+            "\\b(test|tests|pytest|jest|vitest|mocha|rspec|phpunit|ctest|unittest|nosetests|check|verify)\\b",
+            "\\b(lint|eslint|ruff|flake8|pylint|mypy|clippy|rubocop|golangci-lint|prettier|format)\\b",
+            "\\b(logs?|journalctl)\\b",
+            "\\b(plan|apply|deploy|migrate|pull|push)\\b"
+          ],
+          "description": "Regexes (case-insensitive) matched against each command chain; matching commands use the lower thresholds. Replaces the defaults."
+        },
+        "extraNoisyCommands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Regexes appended to noisyCommands."
+        },
+        "neverFilter": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "^(cat|head|tail|sed|awk|less|more|bat|nl|grep|egrep|fgrep|rg|ag|wc|sort|uniq|diff|cmp|xxd|od|strings|jq|yq)\\b",
+            "^git\\s+(show|diff|blame|log|cat-file)\\b"
+          ],
+          "description": "Regexes for commands whose output is never compressed (readers: cat, grep, git diff...). Replaces the defaults."
+        },
+        "extraNeverFilter": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Regexes appended to neverFilter."
+        },
+        "secretCommands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "(^|[\\s;&|])(env|printenv|set|export|declare\\s+-x)(\\s|$)",
+            "\\.env\\b",
+            "secret",
+            "token",
+            "passw",
+            "credential",
+            "private[_-]?key",
+            "api[_-]?key",
+            "id_rsa",
+            "\\.pem\\b",
+            "\\.aws[/\\\\]",
+            "\\.ssh[/\\\\]",
+            "auth\\s+print",
+            "find-(generic|internet)-password",
+            "^(vault|op|pass|gpg|keychain)\\b",
+            "sts\\s+get-",
+            "secretsmanager"
+          ],
+          "description": "Regexes for secret-looking commands: never filtered, nothing saved to disk. Replaces the defaults."
+        },
+        "extraSecretCommands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Regexes appended to secretCommands."
+        },
+        "errorPatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "\\b(error|errors|err!|fail|failed|failure|failing|fatal|exception|panic|traceback|segfault|abort(ed)?)\\b",
+            "\\b(warn|warning|deprecated)\\b",
+            "\\b(assert(ion)?|cannot|can't|could not|unable to|denied|refused|timed? ?out|undefined|not found|no such|unresolved)\\b",
+            "(^|\\s)(FAIL|ERROR|E:|✗|✘|×)(\\s|:|$)",
+            "^\\s*at .+\\(.+:\\d+(:\\d+)?\\)$"
+          ],
+          "description": "Regexes (case-insensitive) for lines kept from the omitted middle. Replaces the defaults."
+        },
+        "extraErrorPatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Regexes appended to errorPatterns."
+        }
+      }
+    },
+    "readGuard": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "readGuard settings.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Guard Read, Grep and Glob."
+        },
+        "mode": {
+          "type": "string",
+          "default": "block",
+          "description": "\"block\" denies the call; \"warn\" only adds a note.",
+          "enum": [
+            "block",
+            "warn"
+          ]
+        },
+        "useGitignore": {
+          "type": "boolean",
+          "default": true,
+          "description": "Also treat paths ignored by the root .gitignore as guarded."
+        },
+        "confirmRepeat": {
+          "type": "boolean",
+          "default": true,
+          "description": "Let a blocked call through when it is repeated unchanged in the same session."
+        },
+        "warnRepeatRead": {
+          "type": "boolean",
+          "default": true,
+          "description": "Soft warning when the same unchanged file range is read twice in a session."
+        },
+        "maxLines": {
+          "type": "number",
+          "default": 1000,
+          "description": "Files with more lines must be read with offset and limit."
+        },
+        "sizeCheckBytes": {
+          "type": "number",
+          "default": 20000,
+          "description": "Skip the line count for files smaller than this."
+        },
+        "ignoreDirs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "node_modules",
+            "vendor",
+            "bin",
+            "obj",
+            "dist",
+            "build",
+            "target",
+            ".venv",
+            "venv",
+            "__pycache__",
+            ".git",
+            ".next",
+            ".nuxt",
+            ".gradle",
+            ".tox",
+            ".mypy_cache",
+            ".pytest_cache",
+            ".terraform",
+            "Pods",
+            "coverage"
+          ],
+          "description": "Directory names that are never read. Replaces the defaults."
+        },
+        "ignoreFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "*.lock",
+            "package-lock.json",
+            "pnpm-lock.yaml",
+            "yarn.lock",
+            "go.sum",
+            "Cargo.lock",
+            "poetry.lock",
+            "composer.lock",
+            "Gemfile.lock",
+            "packages.lock.json",
+            "*.min.js",
+            "*.min.css",
+            "*.map",
+            "*.bundle.js",
+            "*.pyc"
+          ],
+          "description": "File globs that are never read. Replaces the defaults."
+        },
+        "binaryExtensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "zip",
+            "tar",
+            "gz",
+            "tgz",
+            "bz2",
+            "xz",
+            "7z",
+            "rar",
+            "jar",
+            "war",
+            "class",
+            "dll",
+            "exe",
+            "so",
+            "dylib",
+            "o",
+            "a",
+            "bin",
+            "wasm",
+            "woff",
+            "woff2",
+            "ttf",
+            "eot",
+            "mp3",
+            "mp4",
+            "mov",
+            "avi",
+            "iso",
+            "dmg",
+            "sqlite",
+            "db"
+          ],
+          "description": "Extensions treated as binary/archives (images and PDFs stay readable)."
+        },
+        "extraIgnore": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Plain names or globs appended to ignoreDirs/ignoreFiles."
+        },
+        "allow": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Globs relative to the project root that are never guarded."
+        }
+      }
+    },
+    "handoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "handoff settings.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Handoff features (PreCompact snapshot, SessionStart hint)."
+        },
+        "writeAutoSnapshot": {
+          "type": "boolean",
+          "default": true,
+          "description": "PreCompact writes .claude/handoff.auto.md (git facts)."
+        },
+        "sessionStartHint": {
+          "type": "boolean",
+          "default": true,
+          "description": "SessionStart mentions an existing handoff file."
+        }
+      }
+    },
+    "repomap": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "repomap settings.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Repo map features."
+        },
+        "staleDays": {
+          "type": "number",
+          "default": 14,
+          "description": "Map older than this is reported stale."
+        },
+        "staleCommits": {
+          "type": "number",
+          "default": 50,
+          "description": "Map built this many commits ago is reported stale."
+        },
+        "sessionStartHint": {
+          "type": "boolean",
+          "default": true,
+          "description": "SessionStart mentions the map."
+        },
+        "suggestWhenMissing": {
+          "type": "boolean",
+          "default": false,
+          "description": "Also hint when no map exists."
+        },
+        "autoRefresh": {
+          "type": "boolean",
+          "default": true,
+          "description": "PostToolUse watcher writes .claude/repomap.stale.json on structural change."
+        },
+        "maxChangedFiles": {
+          "type": "number",
+          "default": 10,
+          "description": "More changed files than this is structural."
+        },
+        "minStructuralOps": {
+          "type": "number",
+          "default": 1,
+          "description": "Added+deleted+renamed files needed to flag the map."
+        },
+        "driftThreshold": {
+          "type": "number",
+          "default": 3,
+          "description": "Missing paths referenced by the map that advise a full rebuild."
+        },
+        "watchThrottleSeconds": {
+          "type": "number",
+          "default": 5,
+          "description": "Minimum seconds between checks for Edit/Write/Bash events."
+        },
+        "manifestFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "package.json",
+            "pyproject.toml",
+            "requirements*.txt",
+            "setup.py",
+            "setup.cfg",
+            "Pipfile",
+            "Cargo.toml",
+            "go.mod",
+            "pom.xml",
+            "build.gradle",
+            "build.gradle.kts",
+            "settings.gradle*",
+            "*.csproj",
+            "*.fsproj",
+            "*.vbproj",
+            "*.sln",
+            "Gemfile",
+            "composer.json",
+            "mix.exs",
+            "build.sbt",
+            "Package.swift",
+            "deno.json",
+            "Makefile",
+            "CMakeLists.txt",
+            "Dockerfile",
+            "docker-compose*.yml",
+            "docker-compose*.yaml",
+            "tsconfig.json",
+            "justfile",
+            "Taskfile.yml",
+            ".github/workflows/*",
+            ".gitlab-ci.yml",
+            "Jenkinsfile"
+          ],
+          "description": "Globs of dependency/build manifests; a change to one is structural."
+        },
+        "entryFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "main.*",
+            "index.*",
+            "__init__.py",
+            "__main__.py",
+            "app.*",
+            "cli.*",
+            "server.*",
+            "mod.rs",
+            "lib.rs",
+            "Program.cs",
+            "Startup.cs"
+          ],
+          "description": "Globs of typical entry-point file names (reported, not flagged on their own)."
+        }
+      }
+    },
+    "statusline": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "statusline settings.",
+      "properties": {
+        "warnPercent": {
+          "type": "number",
+          "default": 60,
+          "description": "Context percentage at which the status line warns."
+        }
+      }
+    },
+    "stats": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "stats settings.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Write .claude/auto-orchestra-stats.jsonl (metadata only)."
+        }
+      }
+    },
+    "$schema": {
+      "type": "string"
+    }
+  }
+}

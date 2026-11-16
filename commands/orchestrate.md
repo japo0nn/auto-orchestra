@@ -13,6 +13,7 @@ Follow this workflow. You must delegate with the Agent tool, using these subagen
 3. Execution: one coder call per task; parallel only for tasks with non-overlapping files.
 4. Review: reviewer gets the original request, the plan, and the changed files.
 5. On FAIL send fixes back to coder; at most 2 rounds, then report honestly what is unfixed.
-6. Final short report: what changed and what was actually verified.
+6. If `.claude/repomap.md` exists and `.claude/repomap.stale.json` flags a structural change (files added/removed/renamed, entry points, interfaces, manifests, or more than 10 files), refresh the map incrementally after PASS: scout drafts only the affected sections from `git diff --name-status <head>`, coder writes the full updated map to `repomap.draft.md` in the project root and runs the single command `node "${CLAUDE_PLUGIN_ROOT}/scripts/claude-save.js" repomap repomap.draft.md` (it installs the draft, stamps the commit, clears the flag). Full rebuild if the flag says `rebuild: true`.
+7. Final short report: what changed and what was actually verified.
 
 Rules: do not write code or edit files yourself, delegate that. Subagent prompts must be fully self-contained (they have no conversation context). Reply in the user's language.
